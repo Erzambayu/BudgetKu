@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetKu - Smart Financial Management</title>
+    <meta name="description" content="Kelola keuangan Anda dengan mudah dan aman menggunakan BudgetKu">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>B</text></svg>">
+    
+    <!-- Additional CSS for button fixes -->
+    <style>
+        /* Ensure action buttons are always clickable */
+        .action-btn-small {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            position: relative !important;
+            z-index: 100 !important;
+            border: none !important;
+            border-radius: 4px !important;
+            padding: 6px 8px !important;
+            margin: 0 2px !important;
+            font-size: 12px !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            transition: all 0.2s ease !important;
+            min-width: 28px !important;
+            min-height: 28px !important;
+        }
+        
+        .action-btn-small.edit {
+            background: #f59e0b !important;
+            color: white !important;
+        }
+        
+        .action-btn-small.edit:hover {
+            background: #d97706 !important;
+            transform: scale(1.05) !important;
+        }
+        
+        .action-btn-small.delete {
+            background: #ef4444 !important;
+            color: white !important;
+        }
+        
+        .action-btn-small.delete:hover {
+            background: #dc2626 !important;
+            transform: scale(1.05) !important;
+        }
+        
+        /* Ensure transaction actions container doesn't interfere */
+        .transaction-actions {
+            display: flex !important;
+            gap: 4px !important;
+            align-items: center !important;
+            position: relative !important;
+            z-index: 50 !important;
+        }
+        
+        .account-actions {
+            display: flex !important;
+            gap: 4px !important;
+            align-items: center !important;
+            position: relative !important;
+            z-index: 50 !important;
+        }
+        
+        .goal-actions {
+            display: flex !important;
+            gap: 4px !important;
+            align-items: center !important;
+            position: relative !important;
+            z-index: 50 !important;
+        }
+        
+        /* Prevent parent containers from blocking clicks */
+        .transaction-item,
+        .account-card,
+        .goal-card {
+            position: relative !important;
+        }
+        
+        .transaction-item *,
+        .account-card *,
+        .goal-card * {
+            pointer-events: auto !important;
+        }
+        
+        /* Debug styling to make buttons more visible */
+        .action-btn-small {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .action-btn-small {
+                min-width: 32px !important;
+                min-height: 32px !important;
+                padding: 8px !important;
+                font-size: 14px !important;
+            }
+        }
+        
+        /* ===== MODAL FIX ===== */
+        
+        /* Force modal container to be properly positioned and visible when active */
+        .modal-container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 99999 !important;
+            display: none !important; /* Hide by default */
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 20px !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: blur(4px) !important;
+        }
+        
+        /* Show modal container when active */
+        .modal-container.active,
+        .modal-container[style*="flex"] {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        /* Modal content positioning */
+        .modal-content {
+            position: relative !important;
+            background: white !important;
+            border-radius: 16px !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+            max-width: 500px !important;
+            width: 90% !important;
+            max-height: 80vh !important;
+            overflow: hidden !important;
+            z-index: 100000 !important;
+        }
+        
+        /* Modal overlay click handling */
+        .modal-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 99999 !important;
+            display: none !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: blur(4px) !important;
+        }
+        
+        .modal-overlay.active {
+            display: flex !important;
+        }
+        
+        .modal-backdrop {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: transparent !important;
+            cursor: pointer !important;
+        }
+        
+        /* Ensure modal form is scrollable */
+        .modal-form {
+            max-height: 60vh !important;
+            overflow-y: auto !important;
+            padding: 20px !important;
+        }
+        
+        /* Make sure modal buttons are always clickable */
+        .modal-close {
+            background: #f3f4f6 !important;
+            border: none !important;
+            border-radius: 50% !important;
+            width: 32px !important;
+            height: 32px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            color: #6b7280 !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+            z-index: 100001 !important;
+            position: relative !important;
+        }
+        
+        .modal-close:hover {
+            background: #e5e7eb !important;
+            color: #374151 !important;
+        }
+        
+        /* Debug: add visible border to modal container when active */
+        /*.modal-container.active {
+            border: 2px solid red !important;
+        }*/
+        
+        /* Make form inputs more visible */
+        .form-input, .form-select {
+            border: 2px solid #d1d5db !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            font-size: 14px !important;
+            background: white !important;
+            color: #1f2937 !important; /* Force dark text */
+        }
+        
+        .form-input:focus, .form-select:focus {
+            border-color: #3b82f6 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        }
+
+        /* Modal text styling - force visibility */
+        .modal {
+            color: #1f2937 !important; /* Force dark text for light modal background */
+        }
+
+        .modal-title {
+            color: #111827 !important; /* Darker title */
+            font-weight: 700 !important;
+        }
+
+        .form-label {
+            color: #374151 !important; /* Dark gray for labels */
+            font-weight: 600 !important;
+        }
+
+        .form-help {
+            color: #6b7280 !important; /* Medium gray for help text */
+        }
+
+        /* Dark theme modal adjustments */
+        .dark-theme .modal {
+            background: #1f2937 !important; /* Dark background in dark mode */
+            color: #f9fafb !important; /* Light text in dark mode */
+            border: 1px solid #374151 !important;
+        }
+
+        .dark-theme .modal-title {
+            color: #f9fafb !important;
+        }
+
+        .dark-theme .form-label {
+            color: #e5e7eb !important;
+        }
+
+        .dark-theme .form-input,
+        .dark-theme .form-select {
+            background: #374151 !important;
+            color: #f9fafb !important;
+            border-color: #4b5563 !important;
+        }
+
+        .dark-theme .form-input:focus,
+        .dark-theme .form-select:focus {
+            border-color: #60a5fa !important;
+            background: #374151 !important;
+        }
+
+        .dark-theme .form-help {
+            color: #9ca3af !important;
+        }
+
+        .dark-theme .modal-backdrop {
+            background: rgba(0, 0, 0, 0.7) !important;
+        }
+
+        /* Theme toggle button styling */
+        .theme-toggle {
+            background: none !important;
+            border: none !important;
+            font-size: 20px !important;
+            cursor: pointer !important;
+            padding: 8px !important;
+            border-radius: 8px !important;
+            transition: all 0.2s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 40px !important;
+            height: 40px !important;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .dark-theme .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-overlay active" id="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text">Memuat BudgetKu...</div>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div class="app-container">
+        <!-- Initial content will be replaced by AuthUI or main app -->
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 20px;">
+            <div style="font-size: 4rem;">B</div>
+            <h1 style="margin: 0; color: #374151;">BudgetKu</h1>
+            <p style="margin: 0; color: #6B7280;">Memuat aplikasi...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <!-- Modal Container -->
+    <div id="modalContainer" class="modal-container"></div>
+
+    <!-- Scripts -->
+    
+    <!-- Core Budget Manager (LocalStorage version for demo) -->
+    <script src="js/BudgetManager.js"></script>
+    
+    <!-- Analytics Engine -->
+    <script src="js/Analytics.js"></script>
+    
+    <!-- UI Components -->
+    <script src="js/UIComponents.js"></script>
+    
+    <!-- Main UI Controller -->
+    <script src="js/UI.js"></script>
+    
+    <!-- Modern Budget UI (Main Interface) -->
+    <script>
+        // Load ModernBudgetUI after all dependencies are ready
+        console.log('Loading ModernBudgetUI...');
+    </script>
+    
+    <!-- Supabase Integration -->
+    <script src="js/SupabaseConfig.js"></script>
+    <script src="js/SupabaseBudgetManager.js"></script>
+    <script src="js/AuthUI.js"></script>
+
+    <!-- App Initialization -->
+    <script>
+        // Global app initialization
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('BudgetKu App Starting...');
+            
+            try {
+                // Show loading
+                const loadingOverlay = document.getElementById('loading-overlay');
+                
+                // Initialize core managers
+                console.log('Initializing core managers...');
+                window.budgetManager = new BudgetManager();
+                window.analytics = new Analytics(window.budgetManager);
+                window.components = new UIComponents(window.budgetManager, window.analytics);
+                
+                // Initialize Supabase Budget Manager
+                console.log('Initializing Supabase integration...');
+                await window.supabaseBudgetManager.initialize();
+                
+                // Initialize Auth UI first (this will handle showing the auth screen or main app)
+                console.log('Initializing Auth UI...');
+                await window.authUI.initialize();
+                
+                // Create a simple UI class for compatibility
+                class SimpleUI {
+                    constructor() {
+                        this.budgetManager = window.budgetManager;
+                        this.currentPage = 'dashboard';
+                        this.modernUI = null;
+                        this.components = null; // Will be set during initialization
+                    }
+                    
+                    async initialize() {
+                        console.log('Simple UI initialized');
+                        
+                        // Initialize components
+                        try {
+                            this.components = window.components || new UIComponents(this.budgetManager, new Analytics(this.budgetManager));
+                            console.log('UI Components initialized');
+                        } catch (error) {
+                            console.warn('Failed to initialize UI Components:', error);
+                        }
+                        
+                        // Initialize ModernBudgetUI immediately
+                        try {
+                            console.log('Initializing ModernBudgetUI...');
+                            this.modernUI = new ModernBudgetUI(this.budgetManager);
+                            await this.modernUI.initialize();
+                            
+                            // Set global reference
+                            window.modernUI = this.modernUI;
+                            
+                            // Initialize theme after ModernBudgetUI is ready
+                            if (this.modernUI.initializeTheme) {
+                                this.modernUI.initializeTheme();
+                                console.log('Theme initialized');
+                            }
+                            
+                            console.log('ModernBudgetUI initialized successfully');
+                        } catch (error) {
+                            console.error('Failed to initialize ModernBudgetUI:', error);
+                        }
+                        
+                        return true;
+                    }
+                    
+                    showPage(page) {
+                        console.log('Showing page:', page);
+                        this.currentPage = page;
+                        
+                        // Update active nav items
+                        document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(item => {
+                            item.classList.toggle('active', item.dataset.page === page);
+                        });
+                        
+                        // Update page title
+                        const pageTitle = document.getElementById('page-title');
+                        const breadcrumb = document.getElementById('breadcrumb-current');
+                        
+                        const titles = {
+                            dashboard: 'Dashboard',
+                            transactions: 'Transaksi', 
+                            accounts: 'Akun',
+                            goals: 'Target',
+                            analytics: 'Analisis'
+                        };
+                        
+                        if (pageTitle) pageTitle.textContent = titles[page] || 'Dashboard';
+                        if (breadcrumb) breadcrumb.textContent = titles[page] || 'Dashboard';
+                        
+                        // Use ModernBudgetUI for rendering content
+                        if (this.modernUI) {
+                            try {
+                                // Ensure modernUI has the correct budgetManager
+                                this.modernUI.budgetManager = this.budgetManager;
+                                this.modernUI.analytics = new Analytics(this.budgetManager);
+                                this.modernUI.components = new UIComponents(this.budgetManager, this.modernUI.analytics);
+                                
+                                // Special handling for analytics page
+                                if (page === 'analytics') {
+                                    console.log('Preparing analytics page with fresh data...');
+                                    
+                                    // Ensure analytics has latest data
+                                    if (this.modernUI.analytics) {
+                                        this.modernUI.analytics.budgetManager = this.budgetManager;
+                                    }
+                                    
+                                    // Check if we have valid transaction data
+                                    const transactions = this.budgetManager?.data?.transactions || [];
+                                    console.log(`Analytics will process ${transactions.length} transactions`);
+                                    
+                                    // Log first few transactions to verify date field
+                                    if (transactions.length > 0) {
+                                        console.log('Sample transaction data:', transactions.slice(0, 2));
+                                    }
+                                }
+                                
+                                // Switch to the requested view
+                                this.modernUI.currentView = page;
+                                this.modernUI.render();
+                                
+                                console.log('Rendered page with ModernBudgetUI:', page);
+                            } catch (error) {
+                                console.error('Failed to render with ModernBudgetUI:', error);
+                                this.showFallbackContent(page, titles);
+                            }
+                        } else {
+                            console.warn('ModernBudgetUI not available, showing fallback');
+                            this.showFallbackContent(page, titles);
+                        }
+                        
+                        // Update header balance
+                        this.updateHeaderBalance();
+                    }
+                    
+                    showFallbackContent(page, titles) {
+                        // Fallback to basic content
+                        const contentArea = document.getElementById('content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = `
+                                <div style="padding: 20px; text-align: center;">
+                                    <h2>${titles[page] || 'Dashboard'}</h2>
+                                    <p>Halaman ${titles[page] || 'Dashboard'} - ModernBudgetUI tidak tersedia</p>
+                                    <div style="margin: 20px 0; padding: 20px; background: #f3f4f6; border-radius: 8px;">
+                                        <p><strong>Total Akun:</strong> ${this.budgetManager.data.accounts.length}</p>
+                                        <p><strong>Total Transaksi:</strong> ${this.budgetManager.data.transactions.length}</p>
+                                        <p><strong>Total Kategori:</strong> ${this.budgetManager.data.categories.length}</p>
+                                        <p><strong>Total Target:</strong> ${this.budgetManager.data.goals.length}</p>
+                                    </div>
+                                    <button onclick="location.reload()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                        Refresh Halaman
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    updateHeaderBalance() {
+                        const headerBalance = document.getElementById('header-balance');
+                        if (headerBalance && this.budgetManager) {
+                            const totalBalance = this.budgetManager.getTotalBalance ? 
+                                this.budgetManager.getTotalBalance() : 0;
+                            headerBalance.textContent = this.budgetManager.formatCurrency ? 
+                                this.budgetManager.formatCurrency(totalBalance) : `Rp ${totalBalance.toLocaleString('id-ID')}`;
+                        }
+                    }
+                    
+                    setBudgetManager(manager) {
+                        this.budgetManager = manager;
+                        console.log('Budget manager updated:', manager.constructor.name);
+                        
+                        // Update components with new manager
+                        try {
+                            if (this.components) {
+                                this.components.setBudgetManager(manager);
+                            } else {
+                                this.components = new UIComponents(manager, new Analytics(manager));
+                            }
+                            console.log('Components updated with new budget manager');
+                        } catch (error) {
+                            console.warn('Failed to update components:', error);
+                        }
+                        
+                        // Update global references
+                        window.budgetManager = manager;
+                        window.analytics = new Analytics(manager);
+                        window.components = this.components;
+                        
+                        // Update ModernBudgetUI with new manager
+                        if (this.modernUI) {
+                            this.modernUI.budgetManager = manager;
+                            this.modernUI.analytics = new Analytics(manager);
+                            this.modernUI.components = new UIComponents(manager, this.modernUI.analytics);
+                            console.log('ModernBudgetUI updated with new budget manager');
+                        }
+                        
+                        this.updateHeaderBalance();
+                        this.showPage(this.currentPage); // Refresh current page
+                    }
+                    
+                    toggleSidebar() {
+                        const sidebar = document.querySelector('.sidebar');
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (sidebar && overlay) {
+                            sidebar.classList.toggle('active');
+                            overlay.classList.toggle('active');
+                        }
+                    }
+                    
+                    hideModal() {
+                        if (this.modernUI && this.modernUI.components) {
+                            this.modernUI.components.hideModal();
+                        } else if (this.components) {
+                            this.components.hideModal();
+                        }
+                    }
+                    
+                    showQuickAddModal(type = 'expense') {
+                        console.log('showQuickAddModal called with type:', type);
+                        console.log('Available components:', {
+                            ui: window.ui,
+                            modernUI: window.modernUI,
+                            components: window.ui?.components,
+                            modernComponents: window.modernUI?.components
+                        });
+                        
+                        try {
+                            // Method 1: Try using existing component with proper binding
+                            const component = window.ui?.components || window.modernUI?.components;
+                            
+                            if (component && typeof component.showQuickAddModal === 'function') {
+                                console.log('Using existing component with proper binding');
+                                console.log('Component budget manager:', component.budgetManager);
+                                
+                                // Bind the method to the component context
+                                const boundMethod = component.showQuickAddModal.bind(component);
+                                boundMethod(type);
+                                return;
+                            }
+                            
+                            // Method 2: Create fresh component instance with current budget manager
+                            console.warn('No valid component found, creating fresh instance...');
+                            
+                            const budgetManager = window.ui?.budgetManager || window.modernUI?.budgetManager || window.budgetManager || window.supabaseBudgetManager;
+                            
+                            if (budgetManager) {
+                                console.log('Creating fresh UIComponents with budget manager:', budgetManager);
+                                console.log('Budget manager type:', budgetManager.constructor.name);
+                                console.log('Budget manager data available:', !!budgetManager.data);
+                                
+                                // Create analytics if not provided
+                                const analytics = new Analytics(budgetManager);
+                                
+                                // Create fresh component instance
+                                const freshComponent = new UIComponents(budgetManager, analytics);
+                                
+                                console.log('Fresh component created, calling showQuickAddModal...');
+                                freshComponent.showQuickAddModal(type);
+                                return;
+                            }
+                            
+                            // Method 3: Last resort - try localStorage budget manager
+                            console.warn('No budget manager found, trying localStorage fallback...');
+                            
+                            if (window.BudgetManager) {
+                                console.log('Creating localStorage BudgetManager fallback...');
+                                const localManager = new BudgetManager();
+                                const localAnalytics = new Analytics(localManager);
+                                const localComponent = new UIComponents(localManager, localAnalytics);
+                                
+                                // Store as fallback reference
+                                if (!window.fallbackComponent) {
+                                    window.fallbackComponent = localComponent;
+                                }
+                                
+                                localComponent.showQuickAddModal(type);
+                                return;
+                            }
+                            
+                            // Complete failure
+                            throw new Error('No budget manager or component system available');
+                            
+                        } catch (error) {
+                            console.error('Error in showQuickAddModal:', error);
+                            console.error('Error stack:', error.stack);
+                            
+                            // Show user-friendly error
+                            alert('Tidak dapat membuka modal ' + (type === 'income' ? 'pemasukan' : 'pengeluaran') + '.\n\nError: ' + error.message + '\n\nSilakan refresh halaman dan coba lagi.');
+                        }
+                    };
+                    
+                    async loadDemoData() {
+                        try {
+                            // First try with current budget manager
+                            if (this.budgetManager && this.budgetManager.generateDemoData) {
+                                await this.budgetManager.generateDemoData();
+                                if (this.modernUI && this.modernUI.components) {
+                                    this.modernUI.components.showToast('Data demo berhasil dimuat!', 'success');
+                                }
+                                this.showPage(this.currentPage); // Refresh current page
+                                console.log('Demo data loaded successfully');
+                                return;
+                            }
+                            
+                            // Fallback to localStorage manager if available
+                            if (window.budgetManager && window.budgetManager.generateDemoData) {
+                                console.log('Falling back to localStorage manager for demo data...');
+                                window.budgetManager.generateDemoData();
+                                
+                                // Optionally switch to localStorage manager
+                                this.setBudgetManager(window.budgetManager);
+                                
+                                if (this.modernUI && this.modernUI.components) {
+                                    this.modernUI.components.showToast('Data demo dimuat (mode lokal)', 'warning');
+                                }
+                                this.showPage(this.currentPage);
+                            } else {
+                                throw new Error('generateDemoData method not available on any manager');
+                            }
+                        } catch (error) {
+                            console.error('Failed to load demo data:', error);
+                            if (this.modernUI && this.modernUI.components) {
+                                this.modernUI.components.showToast('Gagal memuat data demo: ' + error.message, 'error');
+                            } else {
+                                alert('Gagal memuat data demo: ' + error.message);
+                            }
+                        }
+                    }
+                    
+                    async resetAllData() {
+                        if (!confirm('PERINGATAN: Ini akan menghapus SEMUA data termasuk akun, transaksi, target, dan analisis. Yakin melanjutkan?')) {
+                            return;
+                        }
+                        
+                        // Show loading state
+                        const loadingToast = document.createElement('div');
+                        loadingToast.setAttribute('data-toast', 'true');
+                        loadingToast.style.cssText = `
+                            position: fixed !important;
+                            top: 100px !important;
+                            right: 20px !important;
+                            z-index: 2147483647 !important;
+                            background: #fef3c7 !important;
+                            border: 1px solid #f59e0b !important;
+                            border-radius: 12px !important;
+                            padding: 16px !important;
+                            display: flex !important;
+                            align-items: center !important;
+                            gap: 12px !important;
+                            font-family: Inter, sans-serif !important;
+                            font-size: 14px !important;
+                        `;
+                        loadingToast.innerHTML = `
+                            <div class="spinner" style="width: 20px; height: 20px; border: 2px solid #f59e0b; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <div>Menghapus semua data...</div>
+                        `;
+                        document.body.appendChild(loadingToast);
+                        
+                        try {
+                            console.log('🔄 Starting comprehensive data reset...');
+                            
+                            // Get the active budget manager
+                            const bm = window.supabaseBudgetManager || window.budgetManager;
+                            
+                            if (!bm) {
+                                throw new Error('Budget manager tidak tersedia');
+                            }
+                            
+                            console.log('💾 Using budget manager:', bm.constructor.name);
+                            
+                            // Call resetAllData method (async if it's SupabaseBudgetManager)
+                            if (typeof bm.resetAllData === 'function') {
+                                console.log('🗑️ Calling resetAllData method...');
+                                await bm.resetAllData();
+                                console.log('✅ Data reset completed');
+                            } else {
+                                throw new Error('Method resetAllData tidak tersedia pada budget manager');
+                            }
+                            
+                            // Force reload all data to ensure cache is cleared
+                            if (typeof bm.loadAllData === 'function') {
+                                console.log('🔄 Reloading all data...');
+                                await bm.loadAllData();
+                                console.log('✅ Data reloaded');
+                            }
+                            
+                            // Clear any UI cache/state
+                            if (window.modernUI) {
+                                console.log('🎨 Resetting ModernBudgetUI state...');
+                                window.modernUI.currentView = 'dashboard';
+                                window.modernUI.budgetManager = bm;
+                                window.modernUI.analytics = new Analytics(bm);
+                                window.modernUI.components = new UIComponents(bm, window.modernUI.analytics);
+                            }
+                            
+                            if (window.ui) {
+                                console.log('🎨 Resetting UI state...');
+                                window.ui.currentPage = 'dashboard';
+                                window.ui.setBudgetManager(bm);
+                            }
+                            
+                            // Force comprehensive UI refresh
+                            console.log('🎨 Force refreshing all UI components...');
+                            
+                            // Method 1: Try ModernBudgetUI refresh
+                            if (window.modernUI && typeof window.modernUI.render === 'function') {
+                                console.log('✅ Refreshing with ModernBudgetUI');
+                                window.modernUI.render();
+                                
+                                // Also update header balance
+                                if (typeof window.modernUI.updateUserBalance === 'function') {
+                                    window.modernUI.updateUserBalance();
+                                }
+                            }
+                            
+                            // Method 2: Try regular UI refresh  
+                            if (window.ui && typeof window.ui.showPage === 'function') {
+                                console.log('✅ Refreshing with UI.showPage');
+                                window.ui.showPage('dashboard');
+                                
+                                // Update header balance
+                                if (typeof window.ui.updateHeaderBalance === 'function') {
+                                    window.ui.updateHeaderBalance();
+                                }
+                            }
+                            
+                            // Method 3: Force refresh other UI elements
+                            setTimeout(() => {
+                                console.log('🔄 Final UI cleanup...');
+                                
+                                // Update navigation to dashboard
+                                document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(item => {
+                                    item.classList.toggle('active', item.dataset.page === 'dashboard');
+                                });
+                                
+                                // Update page title
+                                const pageTitle = document.querySelector('.page-title');
+                                const breadcrumb = document.querySelector('.breadcrumb-item');
+                                if (pageTitle) pageTitle.textContent = 'Dashboard';
+                                if (breadcrumb) breadcrumb.textContent = 'Dashboard';
+                                
+                                // Clear any analytics cache
+                                if (window.analytics) {
+                                    window.analytics.budgetManager = bm;
+                                }
+                                
+                                console.log('✅ UI refresh completed');
+                            }, 500);
+                            
+                            // Remove loading toast
+                            loadingToast.remove();
+                            
+                            // Show success message
+                            if (window.ui?.components?.showToast) {
+                                window.ui.components.showToast('✅ Semua data berhasil dihapus! Dashboard telah direset.', 'success');
+                            } else if (window.modernUI?.components?.showToast) {
+                                window.modernUI.components.showToast('✅ Semua data berhasil dihapus! Dashboard telah direset.', 'success');
+                            } else {
+                                alert('✅ Semua data berhasil dihapus! Dashboard telah direset.');
+                            }
+                            
+                            console.log('🎉 Reset all data completed successfully');
+                            
+                        } catch (error) {
+                            console.error('❌ Error in resetAllData:', error);
+                            
+                            // Remove loading toast
+                            if (loadingToast.parentElement) {
+                                loadingToast.remove();
+                            }
+                            
+                            // Show error message
+                            const errorMessage = `Gagal menghapus data: ${error.message}`;
+                            
+                            if (window.ui?.components?.showToast) {
+                                window.ui.components.showToast('❌ ' + errorMessage, 'error');
+                            } else if (window.modernUI?.components?.showToast) {
+                                window.modernUI.components.showToast('❌ ' + errorMessage, 'error');
+                            } else {
+                                alert('❌ ' + errorMessage);
+                            }
+                        }
+                    };
+                }
+                
+                // Initialize simple UI for compatibility
+                window.ui = new SimpleUI();
+                await window.ui.initialize();
+                
+                // Global function untuk showQuickAddModal
+                window.showQuickAddModal = function(type = 'expense') {
+                    console.log('showQuickAddModal called with type:', type);
+                    console.log('Available components:', {
+                        ui: window.ui,
+                        modernUI: window.modernUI,
+                        components: window.ui?.components,
+                        modernComponents: window.modernUI?.components
+                    });
+                    
+                    try {
+                        // Method 1: Try using existing component with proper binding
+                        const component = window.ui?.components || window.modernUI?.components;
+                        
+                        if (component && typeof component.showQuickAddModal === 'function') {
+                            console.log('Using existing component with proper binding');
+                            console.log('Component budget manager:', component.budgetManager);
+                            
+                            // Bind the method to the component context
+                            const boundMethod = component.showQuickAddModal.bind(component);
+                            boundMethod(type);
+                            return;
+                        }
+                        
+                        // Method 2: Create fresh component instance with current budget manager
+                        console.warn('No valid component found, creating fresh instance...');
+                        
+                        const budgetManager = window.ui?.budgetManager || window.modernUI?.budgetManager || window.budgetManager || window.supabaseBudgetManager;
+                        
+                        if (budgetManager) {
+                            console.log('Creating fresh UIComponents with budget manager:', budgetManager);
+                            console.log('Budget manager type:', budgetManager.constructor.name);
+                            console.log('Budget manager data available:', !!budgetManager.data);
+                            
+                            // Create analytics if not provided
+                            const analytics = new Analytics(budgetManager);
+                            
+                            // Create fresh component instance
+                            const freshComponent = new UIComponents(budgetManager, analytics);
+                            
+                            console.log('Fresh component created, calling showQuickAddModal...');
+                            freshComponent.showQuickAddModal(type);
+                            return;
+                        }
+                        
+                        // Method 3: Last resort - try localStorage budget manager
+                        console.warn('No budget manager found, trying localStorage fallback...');
+                        
+                        if (window.BudgetManager) {
+                            console.log('Creating localStorage BudgetManager fallback...');
+                            const localManager = new BudgetManager();
+                            const localAnalytics = new Analytics(localManager);
+                            const localComponent = new UIComponents(localManager, localAnalytics);
+                            
+                            // Store as fallback reference
+                            if (!window.fallbackComponent) {
+                                window.fallbackComponent = localComponent;
+                            }
+                            
+                            localComponent.showQuickAddModal(type);
+                            return;
+                        }
+                        
+                        // Complete failure
+                        throw new Error('No budget manager or component system available');
+                        
+                    } catch (error) {
+                        console.error('Error in showQuickAddModal:', error);
+                        console.error('Error stack:', error.stack);
+                        
+                        // Show user-friendly error
+                        alert('Tidak dapat membuka modal ' + (type === 'income' ? 'pemasukan' : 'pengeluaran') + '.\n\nError: ' + error.message + '\n\nSilakan refresh halaman dan coba lagi.');
+                    }
+                };
+
+                // Global function untuk hideModal
+                window.hideModal = function() {
+                    try {
+                        const component = window.ui?.components || window.modernUI?.components || window.fallbackComponent;
+                        if (component && typeof component.hideModal === 'function') {
+                            const boundMethod = component.hideModal.bind(component);
+                            boundMethod();
+                        } else {
+                            // Fallback - just hide modal container
+                            const modalContainer = document.getElementById('modalContainer');
+                            if (modalContainer) {
+                                modalContainer.style.display = 'none';
+                                modalContainer.innerHTML = '';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error in hideModal:', error);
+                    }
+                };
+
+                // Global function untuk showAddAccountModal
+                window.showAddAccountModal = function() {
+                    try {
+                        const component = window.ui?.components || window.modernUI?.components;
+                        
+                        if (component && typeof component.showAddAccountModal === 'function') {
+                            console.log('Using existing component for showAddAccountModal');
+                            const boundMethod = component.showAddAccountModal.bind(component);
+                            boundMethod();
+                            return;
+                        }
+                        
+                        // Create fresh component if needed
+                        const budgetManager = window.ui?.budgetManager || window.modernUI?.budgetManager || window.budgetManager || window.supabaseBudgetManager;
+                        if (budgetManager) {
+                            const analytics = new Analytics(budgetManager);
+                            const freshComponent = new UIComponents(budgetManager, analytics);
+                            freshComponent.showAddAccountModal();
+                            return;
+                        }
+                        
+                        throw new Error('No budget manager available for showAddAccountModal');
+                    } catch (error) {
+                        console.error('Error in showAddAccountModal:', error);
+                        alert('Tidak dapat membuka modal tambah akun. Silakan refresh halaman.');
+                    }
+                };
+
+                // Global function untuk showAddGoalModal
+                window.showAddGoalModal = function() {
+                    try {
+                        const component = window.ui?.components || window.modernUI?.components;
+                        
+                        if (component && typeof component.showAddGoalModal === 'function') {
+                            console.log('Using existing component for showAddGoalModal');
+                            const boundMethod = component.showAddGoalModal.bind(component);
+                            boundMethod();
+                            return;
+                        }
+                        
+                        // Create fresh component if needed
+                        const budgetManager = window.ui?.budgetManager || window.modernUI?.budgetManager || window.budgetManager || window.supabaseBudgetManager;
+                        if (budgetManager) {
+                            const analytics = new Analytics(budgetManager);
+                            const freshComponent = new UIComponents(budgetManager, analytics);
+                            freshComponent.showAddGoalModal();
+                            return;
+                        }
+                        
+                        throw new Error('No budget manager available for showAddGoalModal');
+                    } catch (error) {
+                        console.error('Error in showAddGoalModal:', error);
+                        alert('Tidak dapat membuka modal tambah target. Silakan refresh halaman.');
+                    }
+                };
+
+                // Global functions untuk edit dan delete actions - ensure they're always available
+                
+                // Transaction actions
+                window.editTransaction = function(id) {
+                    console.log('🔧 editTransaction called with id:', id);
+                    console.log('Available UI objects:', {
+                        ui: !!window.ui,
+                        modernUI: !!window.modernUI,
+                        uiEditTransaction: !!(window.ui && window.ui.editTransaction),
+                        modernUIEditTransaction: !!(window.modernUI && window.modernUI.editTransaction)
+                    });
+                    
+                    try {
+                        // Method 1: Try modernUI first
+                        if (window.modernUI && typeof window.modernUI.editTransaction === 'function') {
+                            console.log('✅ Using modernUI.editTransaction');
+                            window.modernUI.editTransaction(id);
+                            return;
+                        }
+                        
+                        // Method 2: Try regular UI
+                        if (window.ui && typeof window.ui.editTransaction === 'function') {
+                            console.log('✅ Using ui.editTransaction');
+                            window.ui.editTransaction(id);
+                            return;
+                        }
+                        
+                        // Method 3: Create instance if none available
+                        console.warn('⚠️ Creating fresh UI instance for editTransaction');
+                        const budgetManager = window.supabaseBudgetManager || window.budgetManager;
+                        
+                        if (!budgetManager) {
+                            throw new Error('Budget manager tidak tersedia');
+                        }
+                        
+                        // Create temporary ModernBudgetUI instance
+                        const tempUI = new ModernBudgetUI(budgetManager);
+                        tempUI.components = new UIComponents(budgetManager);
+                        tempUI.editTransaction(id);
+                        
+                        console.log('✅ Used temporary UI instance');
+                        
+                    } catch (error) {
+                        console.error('❌ Error in editTransaction:', error);
+                        alert('Tidak dapat edit transaksi. Error: ' + error.message);
+                    }
+                };
+
+                window.deleteTransaction = function(id) {
+                    console.log('🗑️ deleteTransaction called with id:', id);
+                    console.log('Available UI objects:', {
+                        ui: !!window.ui,
+                        modernUI: !!window.modernUI,
+                        uiDeleteTransaction: !!(window.ui && window.ui.deleteTransaction),
+                        modernUIDeleteTransaction: !!(window.modernUI && window.modernUI.deleteTransaction)
+                    });
+                    
+                    try {
+                        // Method 1: Try modernUI first
+                        if (window.modernUI && typeof window.modernUI.deleteTransaction === 'function') {
+                            console.log('✅ Using modernUI.deleteTransaction');
+                            window.modernUI.deleteTransaction(id);
+                            return;
+                        }
+                        
+                        // Method 2: Try regular UI
+                        if (window.ui && typeof window.ui.deleteTransaction === 'function') {
+                            console.log('✅ Using ui.deleteTransaction');
+                            window.ui.deleteTransaction(id);
+                            return;
+                        }
+                        
+                        // Method 3: Create instance if none available
+                        console.warn('⚠️ Creating fresh UI instance for deleteTransaction');
+                        const budgetManager = window.supabaseBudgetManager || window.budgetManager;
+                        
+                        if (!budgetManager) {
+                            throw new Error('Budget manager tidak tersedia');
+                        }
+                        
+                        // Create temporary ModernBudgetUI instance
+                        const tempUI = new ModernBudgetUI(budgetManager);
+                        tempUI.components = new UIComponents(budgetManager);
+                        tempUI.deleteTransaction(id);
+                        
+                        console.log('✅ Used temporary UI instance');
+                        
+                    } catch (error) {
+                        console.error('❌ Error in deleteTransaction:', error);
+                        alert('Tidak dapat hapus transaksi. Error: ' + error.message);
+                    }
+                };
+
+                // Account actions
+                window.editAccount = function(id) {
+                    console.log('🔧 editAccount called with id:', id);
+                    console.log('Available UI objects:', {
+                        ui: !!window.ui,
+                        modernUI: !!window.modernUI,
+                        uiEditAccount: !!(window.ui && window.ui.editAccount),
+                        modernUIEditAccount: !!(window.modernUI && window.modernUI.editAccount)
+                    });
+                    
+                    try {
+                        // Method 1: Try modernUI first
+                        if (window.modernUI && typeof window.modernUI.editAccount === 'function') {
+                            console.log('✅ Using modernUI.editAccount');
+                            window.modernUI.editAccount(id);
+                            return;
+                        }
+                        
+                        // Method 2: Try regular UI
+                        if (window.ui && typeof window.ui.editAccount === 'function') {
+                            console.log('✅ Using ui.editAccount');
+                            window.ui.editAccount(id);
+                            return;
+                        }
+                        
+                        // Method 3: Create instance if none available
+                        console.warn('⚠️ Creating fresh UI instance for editAccount');
+                        const budgetManager = window.supabaseBudgetManager || window.budgetManager;
+                        
+                        if (!budgetManager) {
+                            throw new Error('Budget manager tidak tersedia');
+                        }
+                        
+                        // Create temporary ModernBudgetUI instance
+                        const tempUI = new ModernBudgetUI(budgetManager);
+                        tempUI.components = new UIComponents(budgetManager);
+                        tempUI.editAccount(id);
+                        
+                        console.log('✅ Used temporary UI instance');
+                        
+                    } catch (error) {
+                        console.error('❌ Error in editAccount:', error);
+                        alert('Tidak dapat edit akun. Error: ' + error.message);
+                    }
+                };
+
+                window.deleteAccount = function(id) {
+                    console.log('🗑️ deleteAccount called with id:', id);
+                    console.log('Available UI objects:', {
+                        ui: !!window.ui,
+                        modernUI: !!window.modernUI,
+                        uiDeleteAccount: !!(window.ui && window.ui.deleteAccount),
+                        modernUIDeleteAccount: !!(window.modernUI && window.modernUI.deleteAccount)
+                    });
+                    
+                    try {
+                        // Method 1: Try modernUI first
+                        if (window.modernUI && typeof window.modernUI.deleteAccount === 'function') {
+                            console.log('✅ Using modernUI.deleteAccount');
+                            window.modernUI.deleteAccount(id);
+                            return;
+                        }
+                        
+                        // Method 2: Try regular UI
+                        if (window.ui && typeof window.ui.deleteAccount === 'function') {
+                            console.log('✅ Using ui.deleteAccount');
+                            window.ui.deleteAccount(id);
+                            return;
+                        }
+                        
+                        // Method 3: Create instance if none available  
+                        console.warn('⚠️ Creating fresh UI instance for deleteAccount');
+                        const budgetManager = window.supabaseBudgetManager || window.budgetManager;
+                        
+                        if (!budgetManager) {
+                            throw new Error('Budget manager tidak tersedia');
+                        }
+                        
+                        // Create temporary ModernBudgetUI instance
+                        const tempUI = new ModernBudgetUI(budgetManager);
+                        tempUI.components = new UIComponents(budgetManager);
+                        tempUI.deleteAccount(id);
+                        
+                        console.log('✅ Used temporary UI instance');
+                        
+                    } catch (error) {
+                        console.error('❌ Error in deleteAccount:', error);
+                        alert('Tidak dapat hapus akun. Error: ' + error.message);
+                    }
+                };
+
+                // Goal actions
+                window.editGoal = function(id) {
+                    console.log('🔧 editGoal called with id:', id);
+                    console.log('Available UI objects:', {
+                        ui: !!window.ui,
+                        modernUI: !!window.modernUI,
+                        uiEditGoal: !!(window.ui && window.ui.editGoal),
+                        modernUIEditGoal: !!(window.modernUI && window.modernUI.editGoal)
+                    });
+                    
+                    try {
+                        // Method 1: Try modernUI first
+                        if (window.modernUI && typeof window.modernUI.editGoal === 'function') {
+                            console.log('✅ Using modernUI.editGoal');
+                            window.modernUI.editGoal(id);
+                            return;
+                        }
+                        
+                        // Method 2: Try regular UI
+                        if (window.ui && typeof window.ui.editGoal === 'function') {
+                            console.log('✅ Using ui.editGoal');
+                            window.ui.editGoal(id);
+                            return;
+                        }
+                        
+                        // Method 3: Create instance if none available
+                        console.warn('⚠️ Creating fresh UI instance for editGoal');
+                        const budgetManager = window.supabaseBudgetManager || window.budgetManager;
+                        
+                        if (!budgetManager) {
+                            throw new Error('Budget manager tidak tersedia');
+                        }
+                        
+                        // Create temporary ModernBudgetUI instance
+                        const tempUI = new ModernBudgetUI(budgetManager);
+                        tempUI.components = new UIComponents(budgetManager);
+                        tempUI.editGoal(id);
+                        
+                        console.log('✅ Used temporary UI instance');
+                        
+                    } catch (error) {
+                        console.error('❌ Error in editGoal:', error);
+                        alert('Tidak dapat edit target. Error: ' + error.message);
+                    }
+                };
+
+                window.deleteGoal = function(id) {
+                    console.log('🗑️ deleteGoal called with id:', id);
+                    console.log('Available UI objects:', {
+                        ui: !!window.ui,
+                        modernUI: !!window.modernUI,
+                        uiDeleteGoal: !!(window.ui && window.ui.deleteGoal),
+                        modernUIDeleteGoal: !!(window.modernUI && window.modernUI.deleteGoal)
+                    });
+                    
+                    try {
+                        // Method 1: Try modernUI first
+                        if (window.modernUI && typeof window.modernUI.deleteGoal === 'function') {
+                            console.log('✅ Using modernUI.deleteGoal');
+                            window.modernUI.deleteGoal(id);
+                            return;
+                        }
+                        
+                        // Method 2: Try regular UI
+                        if (window.ui && typeof window.ui.deleteGoal === 'function') {
+                            console.log('✅ Using ui.deleteGoal');
+                            window.ui.deleteGoal(id);
+                            return;
+                        }
+                        
+                        // Method 3: Create instance if none available
+                        console.warn('⚠️ Creating fresh UI instance for deleteGoal');
+                        const budgetManager = window.supabaseBudgetManager || window.budgetManager;
+                        
+                        if (!budgetManager) {
+                            throw new Error('Budget manager tidak tersedia');
+                        }
+                        
+                        // Create temporary ModernBudgetUI instance
+                        const tempUI = new ModernBudgetUI(budgetManager);
+                        tempUI.components = new UIComponents(budgetManager);
+                        tempUI.deleteGoal(id);
+                        
+                        console.log('✅ Used temporary UI instance');
+                        
+                    } catch (error) {
+                        console.error('❌ Error in deleteGoal:', error);
+                        alert('Tidak dapat hapus target. Error: ' + error.message);
+                    }
+                };
+
+                // Enhanced debugging helper
+                window.debugButtons = function() {
+                    console.log('🔍 Comprehensive Debug Info:');
+                    console.log('='.repeat(50));
+                    
+                    // 1. Check UI objects
+                    console.log('📱 UI Objects:', {
+                        ui: !!window.ui,
+                        modernUI: !!window.modernUI,
+                        components: !!window.ui?.components,
+                        modernUIComponents: !!window.modernUI?.components
+                    });
+                    
+                    // 2. Check budget managers
+                    console.log('💰 Budget Managers:', {
+                        supabaseBudgetManager: !!window.supabaseBudgetManager,
+                        budgetManager: !!window.budgetManager,
+                        supabaseData: !!window.supabaseBudgetManager?.data,
+                        budgetManagerData: !!window.budgetManager?.data
+                    });
+                    
+                    // 3. Check methods availability
+                    console.log('⚙️ Available Methods:');
+                    const methodsToCheck = ['editTransaction', 'deleteTransaction', 'editAccount', 'deleteAccount', 'editGoal', 'deleteGoal'];
+                    
+                    methodsToCheck.forEach(method => {
+                        console.log(`  ${method}:`, {
+                            global: typeof window[method] === 'function',
+                            ui: typeof window.ui?.[method] === 'function',
+                            modernUI: typeof window.modernUI?.[method] === 'function'
+                        });
+                    });
+                    
+                    // 4. Check buttons on page
+                    const buttons = document.querySelectorAll('.action-btn-small');
+                    console.log(`🔘 Found ${buttons.length} action buttons:`);
+                    
+                    buttons.forEach((btn, index) => {
+                        const rect = btn.getBoundingClientRect();
+                        const computedStyle = window.getComputedStyle(btn);
+                        
+                        console.log(`  Button ${index + 1}:`, {
+                            visible: rect.width > 0 && rect.height > 0,
+                            pointerEvents: computedStyle.pointerEvents,
+                            cursor: computedStyle.cursor,
+                            zIndex: computedStyle.zIndex,
+                            hasOnclick: !!btn.getAttribute('onclick'),
+                            onclick: btn.getAttribute('onclick')?.substring(0, 100),
+                            classes: btn.className,
+                            text: btn.textContent.trim()
+                        });
+                    });
+                    
+                    // 5. Test data availability
+                    const bm = window.supabaseBudgetManager || window.budgetManager;
+                    if (bm?.data) {
+                        console.log('📊 Data Count:', {
+                            transactions: bm.data.transactions?.length || 0,
+                            accounts: bm.data.accounts?.length || 0,
+                            goals: bm.data.goals?.length || 0,
+                            categories: bm.data.categories?.length || 0
+                        });
+                    }
+                    
+                    console.log('='.repeat(50));
+                    
+                    return {
+                        ui: !!window.ui,
+                        modernUI: !!window.modernUI,
+                        budgetManager: !!bm,
+                        data: !!bm?.data,
+                        buttonsCount: buttons.length
+                    };
+                };
+
+                // Function to force refresh UI
+                window.forceRefreshUI = function() {
+                    console.log('🔄 Force refreshing UI...');
+                    
+                    try {
+                        // Try modernUI first
+                        if (window.modernUI && typeof window.modernUI.render === 'function') {
+                            console.log('✅ Refreshing modernUI');
+                            window.modernUI.render();
+                            return true;
+                        }
+                        
+                        // Try regular UI
+                        if (window.ui && typeof window.ui.render === 'function') {
+                            console.log('✅ Refreshing ui');
+                            window.ui.render();
+                            return true;
+                        }
+                        
+                        console.warn('⚠️ No UI instance found to refresh');
+                        return false;
+                        
+                    } catch (error) {
+                        console.error('❌ Error refreshing UI:', error);
+                        return false;
+                    }
+                };
+
+                // Function to test button functionality manually
+                window.testButton = function(action, id) {
+                    console.log(`🧪 Testing ${action} with id: ${id}`);
+                    
+                    try {
+                        const functionName = action; // e.g., 'editTransaction', 'deleteAccount'
+                        
+                        if (typeof window[functionName] === 'function') {
+                            console.log(`✅ Calling window.${functionName}(${id})`);
+                            window[functionName](id);
+                        } else {
+                            console.error(`❌ Function window.${functionName} not found`);
+                        }
+                    } catch (error) {
+                        console.error(`❌ Error testing ${action}:`, error);
+                    }
+                };
+
+                // Auto-debug on page load
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(() => {
+                        console.log('🚀 Auto-debugging after page load...');
+                        window.debugButtons();
+                    }, 2000);
+                });
+
+                // Reset All Data - Enhanced version with proper async handling
+                window.resetAllData = async function() {
+                    console.log('🗑️ resetAllData called');
+                    
+                    if (!confirm('PERINGATAN: Ini akan menghapus SEMUA data termasuk akun, transaksi, target, dan analisis. Yakin melanjutkan?')) {
+                        return;
+                    }
+                    
+                    // Show loading state
+                    const loadingToast = document.createElement('div');
+                    loadingToast.setAttribute('data-toast', 'true');
+                    loadingToast.style.cssText = `
+                        position: fixed !important;
+                        top: 100px !important;
+                        right: 20px !important;
+                        z-index: 2147483647 !important;
+                        background: #fef3c7 !important;
+                        border: 1px solid #f59e0b !important;
+                        border-radius: 12px !important;
+                        padding: 16px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        gap: 12px !important;
+                        font-family: Inter, sans-serif !important;
+                        font-size: 14px !important;
+                    `;
+                    loadingToast.innerHTML = `
+                        <div class="spinner" style="width: 20px; height: 20px; border: 2px solid #f59e0b; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div>Menghapus semua data...</div>
+                    `;
+                    document.body.appendChild(loadingToast);
+                    
+                    try {
+                        console.log('🔄 Starting comprehensive data reset...');
+                        
+                        // Get the active budget manager
+                        const bm = window.supabaseBudgetManager || window.budgetManager;
+                        
+                        if (!bm) {
+                            throw new Error('Budget manager tidak tersedia');
+                        }
+                        
+                        console.log('💾 Using budget manager:', bm.constructor.name);
+                        
+                        // Call resetAllData method (async if it's SupabaseBudgetManager)
+                        if (typeof bm.resetAllData === 'function') {
+                            console.log('🗑️ Calling resetAllData method...');
+                            await bm.resetAllData();
+                            console.log('✅ Data reset completed');
+                        } else {
+                            throw new Error('Method resetAllData tidak tersedia pada budget manager');
+                        }
+                        
+                        // Force reload all data to ensure cache is cleared
+                        if (typeof bm.loadAllData === 'function') {
+                            console.log('🔄 Reloading all data...');
+                            await bm.loadAllData();
+                            console.log('✅ Data reloaded');
+                        }
+                        
+                        // Clear any UI cache/state
+                        if (window.modernUI) {
+                            console.log('🎨 Resetting ModernBudgetUI state...');
+                            window.modernUI.currentView = 'dashboard';
+                            window.modernUI.budgetManager = bm;
+                            window.modernUI.analytics = new Analytics(bm);
+                            window.modernUI.components = new UIComponents(bm, window.modernUI.analytics);
+                        }
+                        
+                        if (window.ui) {
+                            console.log('🎨 Resetting UI state...');
+                            window.ui.currentPage = 'dashboard';
+                            window.ui.setBudgetManager(bm);
+                        }
+                        
+                        // Force comprehensive UI refresh
+                        console.log('🎨 Force refreshing all UI components...');
+                        
+                        // Method 1: Try ModernBudgetUI refresh
+                        if (window.modernUI && typeof window.modernUI.render === 'function') {
+                            console.log('✅ Refreshing with ModernBudgetUI');
+                            window.modernUI.render();
+                            
+                            // Also update header balance
+                            if (typeof window.modernUI.updateUserBalance === 'function') {
+                                window.modernUI.updateUserBalance();
+                            }
+                        }
+                        
+                        // Method 2: Try regular UI refresh  
+                        if (window.ui && typeof window.ui.showPage === 'function') {
+                            console.log('✅ Refreshing with UI.showPage');
+                            window.ui.showPage('dashboard');
+                            
+                            // Update header balance
+                            if (typeof window.ui.updateHeaderBalance === 'function') {
+                                window.ui.updateHeaderBalance();
+                            }
+                        }
+                        
+                        // Method 3: Force refresh other UI elements
+                        setTimeout(() => {
+                            console.log('🔄 Final UI cleanup...');
+                            
+                            // Update navigation to dashboard
+                            document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(item => {
+                                item.classList.toggle('active', item.dataset.page === 'dashboard');
+                            });
+                            
+                            // Update page title
+                            const pageTitle = document.querySelector('.page-title');
+                            const breadcrumb = document.querySelector('.breadcrumb-item');
+                            if (pageTitle) pageTitle.textContent = 'Dashboard';
+                            if (breadcrumb) breadcrumb.textContent = 'Dashboard';
+                            
+                            // Clear any analytics cache
+                            if (window.analytics) {
+                                window.analytics.budgetManager = bm;
+                            }
+                            
+                            console.log('✅ UI refresh completed');
+                        }, 500);
+                        
+                        // Remove loading toast
+                        loadingToast.remove();
+                        
+                        // Show success message
+                        if (window.ui?.components?.showToast) {
+                            window.ui.components.showToast('✅ Semua data berhasil dihapus! Dashboard telah direset.', 'success');
+                        } else if (window.modernUI?.components?.showToast) {
+                            window.modernUI.components.showToast('✅ Semua data berhasil dihapus! Dashboard telah direset.', 'success');
+                        } else {
+                            alert('✅ Semua data berhasil dihapus! Dashboard telah direset.');
+                        }
+                        
+                        console.log('🎉 Reset all data completed successfully');
+                        
+                    } catch (error) {
+                        console.error('❌ Error in resetAllData:', error);
+                        
+                        // Remove loading toast
+                        if (loadingToast.parentElement) {
+                            loadingToast.remove();
+                        }
+                        
+                        // Show error message
+                        const errorMessage = `Gagal menghapus data: ${error.message}`;
+                        
+                        if (window.ui?.components?.showToast) {
+                            window.ui.components.showToast('❌ ' + errorMessage, 'error');
+                        } else if (window.modernUI?.components?.showToast) {
+                            window.modernUI.components.showToast('❌ ' + errorMessage, 'error');
+                        } else {
+                            alert('❌ ' + errorMessage);
+                        }
+                    }
+                };
+
+                // Load Demo Data - Simple version  
+                window.loadDemoData = function() {
+                    console.log('📊 loadDemoData called');
+                    
+                    try {
+                        if (window.modernUI && window.modernUI.loadDemoData) {
+                            window.modernUI.loadDemoData();
+                        } else if (window.ui && window.ui.loadDemoData) {
+                            window.ui.loadDemoData();
+                        } else {
+                            // Direct approach
+                            const bm = window.supabaseBudgetManager || window.budgetManager;
+                            if (bm && bm.generateDemoData) {
+                                bm.generateDemoData();
+                                alert('Data demo berhasil dimuat!');
+                                if (window.forceRefreshUI) window.forceRefreshUI();
+                            } else {
+                                alert('Load demo data tidak tersedia');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error in loadDemoData:', error);
+                        alert('Tidak dapat memuat data demo: ' + error.message);
+                    }
+                };
+
+                // Simple filter functions
+                window.filterTransactions = function() {
+                    if (window.modernUI && window.modernUI.filterTransactions) {
+                        window.modernUI.filterTransactions();
+                    } else if (window.ui && window.ui.filterTransactions) {
+                        window.ui.filterTransactions();
+                    }
+                };
+
+                window.filterAccounts = function() {
+                    if (window.modernUI && window.modernUI.filterAccounts) {
+                        window.modernUI.filterAccounts();
+                    } else if (window.ui && window.ui.filterAccounts) {
+                        window.ui.filterAccounts();
+                    }
+                };
+
+                window.filterGoals = function() {
+                    if (window.modernUI && window.modernUI.filterGoals) {
+                        window.modernUI.filterGoals();
+                    } else if (window.ui && window.ui.filterGoals) {
+                        window.ui.filterGoals();
+                    }
+                };
+
+                // Simple analytics tab switching
+                window.switchAnalyticsTab = function(tab) {
+                    if (window.modernUI && window.modernUI.switchAnalyticsTab) {
+                        window.modernUI.switchAnalyticsTab(tab);
+                    } else if (window.ui && window.ui.switchAnalyticsTab) {
+                        window.ui.switchAnalyticsTab(tab);
+                    }
+                };
+
+                // Simple import functions
+                window.showAccountImportModal = function() {
+                    alert('Fitur import akun belum tersedia.');
+                };
+
+                window.showGoalImportModal = function() {
+                    alert('Fitur import target belum tersedia.');
+                };
+
+                window.processAccountImport = function() {
+                    alert('Fitur import akun belum tersedia.');
+                };
+
+                window.processGoalImport = function() {
+                    alert('Fitur import target belum tersedia.');
+                };
+
+                window.showSetBudgetModal = function() {
+                    try {
+                        const component = window.ui?.components || window.modernUI?.components;
+                        if (component && component.showSetBudgetModal) {
+                            component.showSetBudgetModal();
+                        } else {
+                            alert('Set budget tidak tersedia saat ini.');
+                        }
+                    } catch (error) {
+                        alert('Error: ' + error.message);
+                    }
+                };
+
+                // Debug all global functions
+                window.listGlobalFunctions = function() {
+                    console.log('📋 Global BudgetKu Functions:');
+                    const functions = [
+                        'showQuickAddModal', 'hideModal', 'showAddAccountModal', 'showAddGoalModal',
+                        'editTransaction', 'deleteTransaction', 'editAccount', 'deleteAccount', 'editGoal', 'deleteGoal',
+                        'resetAllData', 'loadDemoData', 'filterTransactions', 'filterAccounts', 'filterGoals',
+                        'switchAnalyticsTab', 'showAccountImportModal', 'showGoalImportModal', 
+                        'processAccountImport', 'processGoalImport', 'showSetBudgetModal',
+                        'debugButtons', 'forceRefreshUI', 'testButton', 'listGlobalFunctions'
+                    ];
+                    
+                    functions.forEach(funcName => {
+                        const exists = typeof window[funcName] === 'function';
+                        console.log(`  ${exists ? '✅' : '❌'} window.${funcName}: ${exists ? 'Available' : 'Missing'}`);
+                    });
+                    
+                    return functions.filter(funcName => typeof window[funcName] === 'function');
+                };
+
+                // Enhanced click event listener for debugging
+                document.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('action-btn-small')) {
+                        console.log('🎯 Action button clicked:', {
+                            target: e.target,
+                            classes: e.target.className,
+                            onclick: e.target.getAttribute('onclick'),
+                            parentElement: e.target.parentElement
+                        });
+                    }
+                }, true);
+
+                // ===== GLOBAL THEME TOGGLE =====
+                
+                // Initialize theme from localStorage
+                const initializeTheme = function() {
+                    const savedTheme = localStorage.getItem('budgetTheme') || 'light';
+                    console.log('🎨 Initializing theme:', savedTheme);
+                    setTheme(savedTheme);
+                };
+
+                // Set theme function
+                const setTheme = function(theme) {
+                    console.log('🎨 Setting theme to:', theme);
+                    
+                    if (theme === 'dark') {
+                        document.body.classList.add('dark-theme');
+                        document.querySelectorAll('.theme-toggle').forEach(btn => {
+                            btn.textContent = '☀️';
+                            btn.title = 'Switch to Light Mode';
+                        });
+                        console.log('✅ Dark theme applied');
+                    } else {
+                        document.body.classList.remove('dark-theme');
+                        document.querySelectorAll('.theme-toggle').forEach(btn => {
+                            btn.textContent = '🌙';
+                            btn.title = 'Switch to Dark Mode';
+                        });
+                        console.log('✅ Light theme applied');
+                    }
+                    
+                    localStorage.setItem('budgetTheme', theme);
+                    console.log('💾 Theme saved to localStorage:', theme);
+                };
+
+                // Toggle theme function
+                window.toggleTheme = function() {
+                    console.log('🎨 toggleTheme called');
+                    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+                    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                    console.log(`🔄 Switching from ${currentTheme} to ${newTheme}`);
+                    setTheme(newTheme);
+                };
+
+                // Debug theme toggle function
+                window.debugThemeToggle = function() {
+                    console.log('🔍 Theme Toggle Debug Info:');
+                    console.log('='.repeat(40));
+                    
+                    // Check current theme
+                    const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+                    console.log('📱 Current theme:', currentTheme);
+                    console.log('💾 Saved theme:', localStorage.getItem('budgetTheme'));
+                    
+                    // Check theme toggle buttons
+                    const buttons = document.querySelectorAll('.theme-toggle');
+                    console.log('🔘 Found theme toggle buttons:', buttons.length);
+                    
+                    buttons.forEach((btn, index) => {
+                        console.log(`  Button ${index + 1}:`, {
+                            id: btn.id,
+                            class: btn.className,
+                            text: btn.textContent,
+                            title: btn.title,
+                            hasDataAttached: btn.hasAttribute('data-theme-attached'),
+                            visible: btn.offsetWidth > 0 && btn.offsetHeight > 0
+                        });
+                    });
+                    
+                    // Check body classes
+                    console.log('📄 Body classes:', Array.from(document.body.classList));
+                    
+                    console.log('='.repeat(40));
+                    
+                    return {
+                        currentTheme,
+                        savedTheme: localStorage.getItem('budgetTheme'),
+                        buttonsFound: buttons.length,
+                        bodyHasDarkClass: document.body.classList.contains('dark-theme')
+                    };
+                };
+
+                // Enhanced global event listener for theme toggle
+                document.addEventListener('click', function(e) {
+                    console.log('🖱️ Click detected on:', e.target.tagName, e.target.className, e.target.id);
+                    
+                    if (e.target.classList.contains('theme-toggle') || e.target.id === 'themeToggle') {
+                        console.log('🎨 Theme toggle clicked!');
+                        console.log('🎯 Target element:', e.target);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.toggleTheme();
+                    }
+                }, true); // Use capture phase to ensure we catch it
+
+                // Initialize theme on page load
+                initializeTheme();
+
+                // Enhanced auto-attach theme toggle with better detection
+                const attachThemeToggle = function() {
+                    const buttons = document.querySelectorAll('.theme-toggle');
+                    
+                    if (buttons.length > 0) {
+                        console.log(`🔍 Found ${buttons.length} theme toggle buttons, checking attachments...`);
+                    }
+                    
+                    buttons.forEach((btn, index) => {
+                        if (!btn.hasAttribute('data-theme-attached')) {
+                            console.log(`🔗 Attaching theme toggle to button ${index + 1}:`, btn);
+                            
+                            btn.setAttribute('data-theme-attached', 'true');
+                            
+                            // Direct click handler
+                            btn.addEventListener('click', function(e) {
+                                console.log('🎨 Theme toggle clicked (direct listener)');
+                                console.log('🎯 Button clicked:', this);
+                                e.preventDefault();
+                                e.stopPropagation();
+                                window.toggleTheme();
+                            });
+                            
+                            // Onclick attribute as backup
+                            btn.setAttribute('onclick', 'window.toggleTheme(); return false;');
+                            
+                            console.log('✅ Theme toggle event attached to button:', btn.id || 'no-id');
+                        }
+                    });
+                };
+
+                // Multiple attachment strategies for reliability
+                
+                // Strategy 1: Check immediately
+                setTimeout(attachThemeToggle, 100);
+                
+                // Strategy 2: Check after page elements load
+                setTimeout(attachThemeToggle, 500);
+                setTimeout(attachThemeToggle, 1000);
+                setTimeout(attachThemeToggle, 2000);
+                
+                // Strategy 3: Periodic check
+                const themeToggleChecker = setInterval(() => {
+                    const unattachedButtons = document.querySelectorAll('.theme-toggle:not([data-theme-attached])');
+                    if (unattachedButtons.length > 0) {
+                        console.log(`🔄 Found ${unattachedButtons.length} unattached theme toggle buttons, attaching...`);
+                        attachThemeToggle();
+                    }
+                }, 2000);
+                
+                // Strategy 4: DOM mutation observer
+                const themeToggleObserver = new MutationObserver(function(mutations) {
+                    mutations.forEach(mutation => {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType === 1) { // Element node
+                                // Check if added node is theme toggle
+                                if (node.classList && node.classList.contains('theme-toggle')) {
+                                    console.log('🆕 New theme toggle button added to DOM:', node);
+                                    setTimeout(attachThemeToggle, 100);
+                                }
+                                // Check if added node contains theme toggle
+                                const nestedButtons = node.querySelectorAll && node.querySelectorAll('.theme-toggle');
+                                if (nestedButtons && nestedButtons.length > 0) {
+                                    console.log(`🆕 Found ${nestedButtons.length} theme toggle buttons in added content`);
+                                    setTimeout(attachThemeToggle, 100);
+                                }
+                            }
+                        });
+                    });
+                });
+                
+                // Start observing DOM changes
+                themeToggleObserver.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+                
+                // Cleanup observers after 30 seconds (they're no longer needed)
+                setTimeout(() => {
+                    clearInterval(themeToggleChecker);
+                    themeToggleObserver.disconnect();
+                    console.log('🧹 Theme toggle observers cleaned up');
+                }, 30000);
+
+                // Add debugging helper to window
+                window.testTheme = function() {
+                    console.log('🧪 Testing theme toggle manually...');
+                    window.debugThemeToggle();
+                    window.toggleTheme();
+                    console.log('✅ Manual theme toggle completed');
+                };
+
+                // Hide loading after everything is ready
+                setTimeout(() => {
+                    if (loadingOverlay) {
+                        loadingOverlay.classList.remove('active');
+                        setTimeout(() => {
+                            loadingOverlay.style.display = 'none';
+                        }, 300);
+                    }
+                }, 1000);
+                
+                console.log('BudgetKu App initialized successfully');
+                
+            } catch (error) {
+                console.error('Failed to initialize BudgetKu:', error);
+                
+                // Show error message
+                const loadingText = document.querySelector('.loading-text');
+                const spinner = document.querySelector('.spinner');
+                if (loadingText) loadingText.textContent = 'Gagal memuat aplikasi. Silakan refresh halaman.';
+                if (spinner) spinner.style.display = 'none';
+                
+                // Hide loading after error
+                setTimeout(() => {
+                    const loadingOverlay = document.getElementById('loading-overlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.classList.remove('active');
+                    }
+                }, 2000);
+            }
+        });
+
+        // Error handling
+        window.addEventListener('error', function(event) {
+            console.error('Global error:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Unhandled promise rejection:', event.reason);
+        });
+
+        // Service Worker registration (optional for offline support)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // navigator.serviceWorker.register('/sw.js')
+                //     .then(function(registration) {
+                //         console.log('ServiceWorker registration successful');
+                //     })
+                //     .catch(function(err) {
+                //         console.log('ServiceWorker registration failed');
+                //     });
+            });
+        }
+    </script>
+    
+    <!-- Analytics (optional) -->
+    <script>
+        // Google Analytics atau analytics lainnya bisa ditambahkan di sini
+        // gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
+</body>
+</html>
